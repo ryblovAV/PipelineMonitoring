@@ -1,21 +1,20 @@
 package monitoring.services
 
-import cats.Applicative
-import cats.syntax.applicative._
+import cats.effect.BracketThrow
+import doobie.Transactor
+import doobie.implicits._
 import monitoring.domain.DataSource
+
 
 trait DataSources[F[_]] {
   def all: F[List[DataSource]]
 }
 
 object DataSources {
-  def make[F[_]: Applicative]: DataSources[F] = {
+  def make[F[_]: BracketThrow](transactor: Transactor[F]): DataSources[F] = {
     new DataSources[F] {
       override def all: F[List[DataSource]] = {
-        List(
-          DataSource("DebugDataSource-A"),
-          DataSource("DebugDataSource-B")
-        ).pure
+          sql"select id, path from data_source".query[DataSource].to[List].transact(transactor)
       }
     }
   }

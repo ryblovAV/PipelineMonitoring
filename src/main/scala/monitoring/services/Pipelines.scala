@@ -1,22 +1,47 @@
 package monitoring.services
 
-import cats.Applicative
-import cats.syntax.applicative._
-import cats.syntax.functor._
-import monitoring.domain.PipelineJob
+import cats.MonadThrow
+import cats.effect.BracketThrow
+import doobie.Transactor
+import doobie.implicits._
+import monitoring.domain.Connection.ConnectionType
+import monitoring.domain.{Connection, PipelineJob}
+import monitoring.util.DBUtil._
+
 
 trait Pipelines[F[_]] {
-  def all: F[List[PipelineJob]]
+  def getAllJobs: F[List[PipelineJob]]
+
+  def addJob(jobName: String): F[Int]
+
+  def addJobDataSource(pipelineJobId: Int,
+                       dataSourcePath: String,
+                       connectionType: ConnectionType.Value): F[Int]
+
 }
 
 object Pipelines {
-  def make[F[_]: Applicative]: Pipelines[F] = {
+
+  def make[F[_] : MonadThrow : BracketThrow](transactor: Transactor[F]): Pipelines[F] = {
     new Pipelines[F] {
-      override def all: F[List[PipelineJob]] = {
-        List(
-          PipelineJob("A", Nil, Nil),
-          PipelineJob("B", Nil, Nil, isFailed = true)
-        ).pure
+
+      override def addJob(jobName: String): F[Int] = {
+        insertPipelineJob(jobName).transact(transactor)
+      }
+
+      override def getAllJobs: F[List[PipelineJob]] = {
+        selectAllPipelineJobs.transact(transactor)
+      }
+
+      override def addJobDataSource(pipelineJobId: Int,
+                                    dataSourcePath: String,
+                                    connectionType: Connection.ConnectionType.Value): F[Int] = {
+        (
+          for {
+            dataSourceId <- insertDataSource(dataSourcePath)
+            connectionId <- insertConnection(pipelineJobId, dataSourceId, connectionType)
+          } yield connectionId
+        ).transact(transactor)
       }
     }
   }

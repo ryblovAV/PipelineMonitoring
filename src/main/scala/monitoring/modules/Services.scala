@@ -1,14 +1,17 @@
 package monitoring.modules
 
-import cats.MonadThrow
+import cats.effect.BracketThrow
+import doobie.util.transactor.Transactor
 import monitoring.services.{DataSources, Pipelines}
 
 object Services {
 
-  def make[F[_]: MonadThrow]: Services[F] = new Services[F](
-    Pipelines.make[F],
-    DataSources.make[F]
-  ) {}
+  def make[F[_]: BracketThrow](postgres: Transactor[F]): Services[F] = {
+    new Services[F](
+      Pipelines.make[F](postgres),
+      DataSources.make[F](postgres)
+    ) {}
+  }
 
 }
 
