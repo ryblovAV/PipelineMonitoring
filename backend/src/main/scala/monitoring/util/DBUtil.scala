@@ -1,10 +1,10 @@
 package monitoring.util
 import cats.data.OptionT
-import doobie.{ConnectionIO, Meta}
 import doobie.implicits._
 import doobie.postgres.implicits.pgEnum
+import doobie.{ConnectionIO, Meta}
 import monitoring.domain.Connection.ConnectionType
-import monitoring.domain.{Connection, DataSource, PipelineJob}
+import monitoring.domain.{DataSource, PipelineJob}
 
 object DBUtil {
 
@@ -28,11 +28,8 @@ object DBUtil {
   }
 
   def selectAllPipelineJobs: ConnectionIO[List[PipelineJob]] = {
-    println("start selectAllPipelineJobs")
-    val a = selectRawJobAttrs
-    selectRawJobAttrs.map { atrs =>
-      println(s"attrs = $atrs")
-      atrs
+    selectRawJobAttrs.map { jobAttrs =>
+      jobAttrs
         .groupBy(attr => (attr.jobId, attr.jobName))
         .map { case ((jobId, jobName), attrs) =>
 

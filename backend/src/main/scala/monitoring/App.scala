@@ -31,18 +31,6 @@ object App extends IOApp {
           .drain
       } yield ExitCode.Success
     )
-//
-//    for {
-//
-//      appResource <-
-//      httpApp <- httpApp
-//      _ <- BlazeServerBuilder[IO](ExecutionContext.global)
-//        .bindHttp(port = 9001, host = "localhost")
-//        .withHttpApp(httpApp)
-//        .serve
-//        .compile
-//        .drain
-//    } yield ExitCode.Success
   }
 
 }
