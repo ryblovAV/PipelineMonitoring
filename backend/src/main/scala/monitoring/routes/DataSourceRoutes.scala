@@ -9,8 +9,9 @@ import org.http4s.dsl.Http4sDsl
 import org.http4s.server.Router
 import org.http4s.{HttpRoutes, Request, Response}
 
+import domain.JobDataSourceAttr
 
-final case class JobDataSourceAttr(pipelineJobId: Int, dataSourcePath: String)
+
 
 final case class DataSourceRoutes[F[_] : Sync](dataSources: DataSources[F],
                                                pipelines: Pipelines[F]

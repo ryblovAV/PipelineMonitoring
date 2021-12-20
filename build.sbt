@@ -11,6 +11,18 @@ val doobieVersion = "0.13.4"
 val scalaTestVersion = "3.2.10"
 val scalaJSVersion = "2.0.0"
 
+val laminarVersion       = "0.14.2"
+val laminextVersion      = "0.14.2"
+
+val sparkVersion = "3.2.0"
+
+lazy val common =
+  project
+    .in(file("common"))
+    .settings(
+      name := "Common"
+    )
+
 lazy val backend =
   project
     .in(file("./backend"))
@@ -31,7 +43,8 @@ lazy val backend =
 
         "org.scalatest" %% "scalatest" % scalaTestVersion % Test
       )
-  )
+    )
+    .dependsOn(common)
 
 lazy val frontend =
   project
@@ -41,7 +54,29 @@ lazy val frontend =
       name := "WebApp",
       scalaJSUseMainModuleInitializer := true,
       libraryDependencies ++= Seq(
-        "org.scala-js" %%% "scalajs-dom" % scalaJSVersion
+//        "org.scala-js" %%% "scalajs-dom" % scalaJSVersion,
+        "com.raquo" %%% "laminar" % laminarVersion,
+        "io.laminext" %%% "websocket" % laminextVersion,
       ),
-
     )
+
+lazy val sparkApp =   project
+  .in(file("./spark-app"))
+  .settings(
+    name := "SparkApp",
+    libraryDependencies ++= Seq(
+      "org.apache.spark" %% "spark-core" % sparkVersion,
+      "org.apache.spark" %% "spark-sql" % sparkVersion,
+
+      "org.http4s" %% "http4s-blaze-client" % http4sVersion,
+      "org.http4s" %% "http4s-dsl" % http4sVersion,
+      "org.http4s" %% "http4s-circe" % http4sVersion,
+
+      "io.circe" %% "circe-core" % circeVersion,
+      "io.circe" %% "circe-generic" % circeVersion,
+      "io.circe" %% "circe-generic-extras" % circeVersion,
+      "io.circe" %% "circe-optics" % circeVersion,
+      "io.circe" %% "circe-parser" % circeVersion
+    )
+  )
+  .dependsOn(common)

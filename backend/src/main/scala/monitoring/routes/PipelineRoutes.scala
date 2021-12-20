@@ -7,6 +7,7 @@ import monitoring.services.Pipelines
 import org.http4s.circe.CirceEntityEncoder._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.Router
+import org.http4s.server.websocket.WebSocketBuilder
 import org.http4s.{Header, HttpRoutes}
 
 
@@ -23,6 +24,11 @@ final case class PipelineRoutes[F[_]: Sync](pipelines: Pipelines[F]
         )
     case req @ POST -> Root / "add"  =>
       req.as[String].flatMap(jobName => Ok(pipelines.addJob(jobName)))
+    case GET -> Root / "info" =>
+      WebSocketBuilder[F].build(
+        receive = ???,
+        send = ???
+      )
   }
 
   val routes: HttpRoutes[F] = Router(
