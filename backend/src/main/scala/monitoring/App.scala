@@ -2,6 +2,8 @@ package monitoring
 
 import cats.effect.{ExitCode, IO, IOApp}
 import doobie.Transactor
+import fs2.concurrent.Topic
+import model.PipelineStatusEvent
 import monitoring.config.AppConfig
 import monitoring.modules.{HttpApi, Services}
 import monitoring.resources.AppResources
@@ -12,10 +14,13 @@ import scala.concurrent.ExecutionContext
 
 object App extends IOApp {
 
-  private def httpApp(postgres: Transactor[IO]): IO[HttpApp[IO]] = IO {
-    val services: Services[IO] = Services.make[IO](postgres)
-    HttpApi.make[IO](services).httpApp
+  private def httpApp(postgres: Transactor[IO]): IO[HttpApp[IO]] = {
+    for {
+      eventTopic <- Topic[IO, Option[PipelineStatusEvent]](initial = None)
+      services <- IO(Services.make[IO](postgres))
+    } yield HttpApi.make[IO](services).httpApp(eventTopic)
   }
+
 
   override def run(args: List[String]): IO[ExitCode] = {
     val config = AppConfig.default

@@ -54,11 +54,17 @@ lazy val frontend =
       name := "WebApp",
       scalaJSUseMainModuleInitializer := true,
       libraryDependencies ++= Seq(
-//        "org.scala-js" %%% "scalajs-dom" % scalaJSVersion,
         "com.raquo" %%% "laminar" % laminarVersion,
+
+        "io.laminext" %%% "core" % laminextVersion,
         "io.laminext" %%% "websocket" % laminextVersion,
+
+        "io.circe" %% "circe-generic" % circeVersion,
+        "io.circe" %% "circe-generic-extras" % circeVersion,
+        "io.circe" %% "circe-parser" % circeVersion
       ),
     )
+    .dependsOn(common)
 
 lazy val sparkApp =   project
   .in(file("./spark-app"))

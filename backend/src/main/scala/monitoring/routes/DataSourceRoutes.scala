@@ -9,7 +9,7 @@ import org.http4s.dsl.Http4sDsl
 import org.http4s.server.Router
 import org.http4s.{HttpRoutes, Request, Response}
 
-import domain.JobDataSourceAttr
+import model.JobDataSourceAttr
 
 
 
@@ -30,7 +30,9 @@ final case class DataSourceRoutes[F[_] : Sync](dataSources: DataSources[F],
 
   private val httpRoutes = HttpRoutes.of[F] {
     case GET -> Root => Ok(dataSources.all)
-    case req@POST -> Root / "add" / "input" => addDataSource(ConnectionType.input)(req)
+    case req @ POST -> Root / "add" / "input" =>
+      Ok("1")
+      //addDataSource(ConnectionType.input)(req)
     case req@POST -> Root / "add" / "output" => addDataSource(ConnectionType.output)(req)
   }
 
