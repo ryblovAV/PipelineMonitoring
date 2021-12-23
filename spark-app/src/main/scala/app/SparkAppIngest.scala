@@ -5,8 +5,10 @@ import org.apache.spark.sql.SparkSession
 
 object SparkAppIngest extends PipelineApp {
 
-  val sourceA = "/Users/user/data/data-sources/input/source-a"
-  val sourceB = "/Users/user/data/data-sources/output/source-b"
+  override def pipelineName: String = "SparkAppIngest"
+
+  private val sourceA = "/Users/user/data/data-sources/input/source-a"
+  private val sourceB = "/Users/user/data/data-sources/output/source-b"
 
   def createSession(sparkAppName: String): IO[SparkSession] = {
     IO(
@@ -19,15 +21,13 @@ object SparkAppIngest extends PipelineApp {
     )
   }
 
-  override def process: IO[Unit] = {
+  override def process(pipelineId: Int): IO[Unit] = {
     for {
-      spark <- createSession(sparkAppName)
-      df <- read(sourceA, spark)
-      _ <- write(df, sourceB)
+      spark <- createSession(pipelineName)
+      df <- read(pipelineId, sourceA, spark)
+      _ <- write(pipelineId, df, sourceB)
     } yield ()
   }
 
-  override def sparkAppName: String = "SparkAppIngest"
 
-  override def outputs: List[String] = List(sourceB)
 }

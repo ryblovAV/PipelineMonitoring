@@ -1,47 +1,55 @@
 import com.raquo.laminar.CollectionCommand
 import com.raquo.laminar.api.L._
-import com.raquo.laminar.nodes.ReactiveHtmlElement
-import org.scalajs.dom
-import io.laminext.websocket._
-import org.scalajs.dom.html
-
-import com.raquo.laminar.api.L._
-import com.raquo.laminar.CollectionCommand
-
 import io.circe._
-
+import io.laminext.websocket._
+import io.laminext.websocket.circe.webSocketReceiveBuilderSyntax
+import org.scalajs.dom
 
 object LaminarApp {
 
-  private val ws = WebSocket.url("ws://localhost:9001/pipelines/info").string.build(managed = true, bufferSize = Int.MaxValue)
+  final case class PipelineStatusEvent(pipelineName: String, status: String)
+  final case class ClientCommand(name: String)
 
-  val nameVar = Var(initial = "world")
+  implicit val PipelineStatusEventCodec: Codec[PipelineStatusEvent] = Codec.from(
+    Decoder.forProduct2("pipelineName", "status")(PipelineStatusEvent.apply),
+    Encoder.forProduct2("pipelineName", "status")(e => (e.pipelineName, e.status)),
+  )
 
-  val rootElement: ReactiveHtmlElement[html.Div] = div(
+  implicit val clientCommandCodec: Codec[ClientCommand] = Codec.from(
+    Decoder.forProduct1("name")(ClientCommand.apply),
+    Encoder.forProduct1("name")(_.name)
+  )
+
+  private val ws = WebSocket
+    .url("ws://localhost:9001/pipelines/info")
+    .json[List[PipelineStatusEvent], ClientCommand]
+    .build(managed = true, bufferSize = Int.MaxValue)
+
+  def pipelinesListElement = {
     div(
-      ws.connect
-    ),
-    div(
-      cls := "flex-1",
       div(
-        code("pipelines:")
+        ws.connect
       ),
       div(
-        cls := "flex flex-col space-y-4 p-4 max-h-48 overflow-auto bg-gray-900 text-green-400 text-xs",
-        children.command <-- ws.received.map { message =>
-          println(message)
-          CollectionCommand.Append(
-            message
+        ul(
+          children.command <-- ws.received.map(pipelines =>
+            CollectionCommand.Append(
+              div(
+                li(
+                  label(pipelines.mkString("\n"))
+                )
+              )
+            )
           )
-        }
+        )
       )
     )
-  )
+  }
 
   def main(args: Array[String]): Unit = {
     val _ = documentEvents.onDomContentLoaded.foreach { _ =>
       val appContainer = dom.document.querySelector("#app")
-      val _ = render(appContainer, rootElement)
+      val _ = render(appContainer, pipelinesListElement)
     }(unsafeWindowOwner)
   }
 

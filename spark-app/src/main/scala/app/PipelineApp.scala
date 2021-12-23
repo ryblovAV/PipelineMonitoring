@@ -7,29 +7,33 @@ import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 
 trait PipelineApp extends IOApp.Simple {
 
-  def sparkAppName: String
+  def pipelineName: String
 
-  def outputs: List[String]
-
-  def read(path: String, spark: SparkSession)(implicit contextShift: ContextShift[IO], sync: Sync[IO]): IO[DataFrame] = {
+  def read(pipelineId: Int, path: String, spark: SparkSession)(implicit contextShift: ContextShift[IO], sync: Sync[IO]): IO[DataFrame] = {
     for {
-      _ <- MonitoringClient.sendDataSourceRead(sparkAppName, path)
-      df <- Blocker[IO].use(blocker =>
-        blocker.delay(spark.read.format("parquet").load(path)))
+      _ <- MonitoringClient.sendDataSourceRead(pipelineId, path)
+      df <- Blocker[IO].use(_.delay(spark.read.format("parquet").load(path)))
     } yield df
   }
 
-  def write(df: DataFrame, path: String)(implicit contextShift: ContextShift[IO], sync: Sync[IO]): IO[Unit] = {
-    Blocker[IO].use(blocker => blocker.delay(df.write.format("parquet").mode(SaveMode.Overwrite).save(path)))
+  def write(pipelineId: Int, df: DataFrame, path: String)(implicit contextShift: ContextShift[IO], sync: Sync[IO]): IO[Unit] = {
+    for {
+      _ <- Blocker[IO].use(_.delay(df.write.format("parquet").mode(SaveMode.Overwrite).save(path)))
+      _ <- MonitoringClient.sendDataSourceWrite(pipelineId, path)
+    } yield ()
+
   }
 
-  def process: IO[Unit]
+  def process(pipelineId: Int): IO[Unit]
 
   override def run: IO[Unit] = {
     for {
-      _ <- MonitoringClient.sendSparkAppStart(sparkAppName, outputs)
-      _ <- process.handleErrorWith(error => MonitoringClient.sendSparkAppFailed(sparkAppName, error) *> IO.raiseError(error))
-      _ <- MonitoringClient.sendSparkAppEnd(sparkAppName)
+      pipelineId <- MonitoringClient.sendSparkAppStart(pipelineName)
+      _ <- process(pipelineId)
+        .handleErrorWith(error =>
+          MonitoringClient.sendSparkAppFailed(pipelineId, error) *> IO.raiseError(error)
+        )
+      _ <- MonitoringClient.sendSparkAppEnd(pipelineId)
     } yield()
   }
 

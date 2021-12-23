@@ -2,7 +2,7 @@ package monitoring.modules
 
 import cats.effect.{Concurrent, Sync}
 import cats.syntax.all._
-import model.PipelineStatusEvent
+import model.PipelineInfo
 import fs2.concurrent.Topic
 import monitoring.routes.{DataSourceRoutes, PipelineRoutes}
 import org.http4s.implicits._
@@ -16,12 +16,12 @@ object HttpApi {
 }
 
 sealed abstract class HttpApi[F[_]: Sync: Concurrent] private(services: Services[F]) {
-  private def pipelineRoutes(eventTopic: Topic[F, Option[PipelineStatusEvent]]): HttpRoutes[F] = PipelineRoutes[F](services.pipelines).routes(eventTopic)
+  private def pipelineRoutes(eventTopic: Topic[F, List[PipelineInfo]]): HttpRoutes[F] = PipelineRoutes[F](services.pipelines).routes(eventTopic)
   private val dataSourcesRoutes: HttpRoutes[F] = DataSourceRoutes[F](services.dataSources, services.pipelines).routes
 
-  private def routes(eventTopic: Topic[F, Option[PipelineStatusEvent]]): HttpRoutes[F] = {
+  private def routes(eventTopic: Topic[F, List[PipelineInfo]]): HttpRoutes[F] = {
     pipelineRoutes(eventTopic) <+> dataSourcesRoutes
   }
 
-  def httpApp(eventTopic: Topic[F, Option[PipelineStatusEvent]]): HttpApp[F] = routes(eventTopic).orNotFound
+  def httpApp(eventTopic: Topic[F, List[PipelineInfo]]): HttpApp[F] = routes(eventTopic).orNotFound
 }

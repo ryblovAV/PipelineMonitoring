@@ -5,6 +5,10 @@ version := "1.0"
 
 ThisBuild / scalaVersion := "2.13.6"
 
+scalacOptions ++= Seq(
+  "-Ymacro-annotations",
+)
+
 val circeVersion = "0.13.0"
 val http4sVersion = "0.21.22"
 val doobieVersion = "0.13.4"
@@ -16,12 +20,25 @@ val laminextVersion      = "0.14.2"
 
 val sparkVersion = "3.2.0"
 
+val sharedSettings = Seq(
+  addCompilerPlugin("org.typelevel" %% "kind-projector"     % "0.13.2" cross CrossVersion.full),
+  scalacOptions ++= Seq("-Ymacro-annotations", "-Xfatal-warnings", "-deprecation")
+)
+
 lazy val common =
   project
     .in(file("common"))
     .settings(
-      name := "Common"
+      name := "Common",
+      libraryDependencies ++= Seq(
+        "io.circe" %% "circe-core" % circeVersion,
+        "io.circe" %% "circe-generic-extras" % circeVersion,
+        "io.circe" %% "circe-optics" % circeVersion,
+        "io.circe" %% "circe-parser" % circeVersion,
+        "io.circe" %% "circe-generic" % circeVersion
+      )
     )
+    .settings(sharedSettings)
 
 lazy val backend =
   project
@@ -44,6 +61,7 @@ lazy val backend =
         "org.scalatest" %% "scalatest" % scalaTestVersion % Test
       )
     )
+    .settings(sharedSettings)
     .dependsOn(common)
 
 lazy val frontend =
@@ -58,12 +76,14 @@ lazy val frontend =
 
         "io.laminext" %%% "core" % laminextVersion,
         "io.laminext" %%% "websocket" % laminextVersion,
+        "io.laminext" %%% "websocket-circe" % laminextVersion,
 
         "io.circe" %% "circe-generic" % circeVersion,
         "io.circe" %% "circe-generic-extras" % circeVersion,
         "io.circe" %% "circe-parser" % circeVersion
       ),
     )
+    .settings(sharedSettings)
     .dependsOn(common)
 
 lazy val sparkApp =   project
@@ -85,4 +105,5 @@ lazy val sparkApp =   project
       "io.circe" %% "circe-parser" % circeVersion
     )
   )
+  .settings(sharedSettings)
   .dependsOn(common)

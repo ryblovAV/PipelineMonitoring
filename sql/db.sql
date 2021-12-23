@@ -4,44 +4,29 @@ DROP DATABASE IF EXISTS job_monitoring;
 CREATE DATABASE job_monitoring;
 \c job_monitoring;
 
-CREATE TYPE CONNECTION_TYPE AS ENUM('input', 'output');
+CREATE TYPE PIPELINE_EVENT_TYPE AS ENUM('start', 'finish', 'failed', 'outdated');
 
-CREATE TABLE PIPELINE_JOB (
+CREATE TABLE PIPELINE (
     ID SERIAL PRIMARY KEY,
-    NAME TEXT NOT NULL UNIQUE
+    NAME TEXT NOT NULL
 );
 
-CREATE TABLE DATA_SOURCE (
+CREATE TABLE PIPELINE_EVENT (
     ID SERIAL PRIMARY KEY,
-    PATH TEXT NOT NULL UNIQUE
+    PIPELINE_ID INT NOT NULL REFERENCES PIPELINE (ID),
+    STATE PIPELINE_EVENT_TYPE NOT NULL,
+    EVENT_DATE TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE CONNECTION (
+CREATE TYPE DATASOURCE_EVENT_TYPE AS ENUM('read', 'write');
+
+
+CREATE TABLE DATASOURCE_EVENT (
     ID SERIAL PRIMARY KEY,
-    PIPELINE_JOB_ID INT NOT NULL REFERENCES PIPELINE_JOB (ID),
-    DATA_SOURCE_ID INT NOT NULL REFERENCES DATA_SOURCE (ID),
-    CONNECTION_TYPE CONNECTION_TYPE NOT NULL,
-    UNIQUE (PIPELINE_JOB_ID, DATA_SOURCE_ID)
-);
+    PIPELINE_ID INT NOT NULL REFERENCES PIPELINE (ID),
+    EVENT_TYPE DATASOURCE_EVENT_TYPE NOT NULL,
+    EVENT_DATE TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+)
+
 
 \echo '=================== loading debug data ==================='
-insert into pipeline_job (NAME) VALUES ('JOB_A');
-insert into pipeline_job (NAME) VALUES ('JOB_B');
-insert into pipeline_job (NAME) VALUES ('JOB_C');
-insert into pipeline_job (NAME) VALUES ('JOB_D');
-insert into pipeline_job (NAME) VALUES ('JOB_E');
-
-insert into data_source (path) values ('/path/to/a');
-insert into data_source (path) values ('/path/to/b');
-insert into data_source (path) values ('/path/to/c');
-insert into data_source (path) values ('/path/to/d');
-
-insert into connection (pipeline_job_id, data_source_id, connection_type) values (1, 1, 'output');
-insert into connection (pipeline_job_id, data_source_id, connection_type) values (2, 2, 'output');
-
-insert into connection (pipeline_job_id, data_source_id, connection_type) values (3, 1, 'input');
-insert into connection (pipeline_job_id, data_source_id, connection_type) values (3, 2, 'input');
-insert into connection (pipeline_job_id, data_source_id, connection_type) values (3, 3, 'output');
-
-insert into connection (pipeline_job_id, data_source_id, connection_type) values (4, 3, 'input');
-insert into connection (pipeline_job_id, data_source_id, connection_type) values (4, 4, 'output');

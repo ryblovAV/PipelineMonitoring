@@ -3,7 +3,7 @@ package monitoring
 import cats.effect.{ExitCode, IO, IOApp}
 import doobie.Transactor
 import fs2.concurrent.Topic
-import model.PipelineStatusEvent
+import model.PipelineInfo
 import monitoring.config.AppConfig
 import monitoring.modules.{HttpApi, Services}
 import monitoring.resources.AppResources
@@ -16,7 +16,7 @@ object App extends IOApp {
 
   private def httpApp(postgres: Transactor[IO]): IO[HttpApp[IO]] = {
     for {
-      eventTopic <- Topic[IO, Option[PipelineStatusEvent]](initial = None)
+      eventTopic <- Topic[IO, List[PipelineInfo]](initial = Nil)
       services <- IO(Services.make[IO](postgres))
     } yield HttpApi.make[IO](services).httpApp(eventTopic)
   }
