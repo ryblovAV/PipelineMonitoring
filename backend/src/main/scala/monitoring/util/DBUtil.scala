@@ -2,7 +2,7 @@ package monitoring.util
 import doobie.{ConnectionIO, Meta}
 import doobie.implicits._
 import doobie.postgres.implicits.pgEnum
-import model.Events.{DataSourceEventType, PipelineEventType}
+import model.Events.{DataSourceEventType, PipelineEventType, PipelineInfo}
 
 object DBUtil {
 
@@ -32,5 +32,28 @@ object DBUtil {
       .withGeneratedKeys[Int]("id")
       .compile
       .lastOrError
+  }
+
+  def queryPipelineInfos: ConnectionIO[List[PipelineInfo]] = {
+   sql"""
+        select lp.name, lpe.state
+        from (select p.id, p.name
+                from (
+                    select id,
+                           name,
+                           row_number() over (partition by name order by id desc) as row_number
+                     from pipeline
+                    ) p
+                where p.row_number = 1) lp,
+             (select pe.state, pe.event_date, pe.pipeline_id
+                from (select pipeline_id,
+                             state,
+                             event_date,
+                             row_number() over (partition by pipeline_id order by id desc) as row_number
+                        from pipeline_event
+                    ) pe
+             where row_number = 1) lpe
+        where lp.id = lpe.pipeline_id
+        order by lp.name""".query[PipelineInfo].to[List]
   }
 }

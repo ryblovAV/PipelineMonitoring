@@ -2,8 +2,8 @@ package monitoring.modules
 
 import cats.effect.{Concurrent, Sync}
 import cats.syntax.all._
-import model.PipelineInfo
 import fs2.concurrent.Topic
+import model.Events.PipelineInfo
 import monitoring.routes.{DataSourceRoutes, PipelineRoutes}
 import org.http4s.implicits._
 import org.http4s.{HttpApp, HttpRoutes}

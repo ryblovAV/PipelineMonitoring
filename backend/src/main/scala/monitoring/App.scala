@@ -3,7 +3,7 @@ package monitoring
 import cats.effect.{ExitCode, IO, IOApp}
 import doobie.Transactor
 import fs2.concurrent.Topic
-import model.PipelineInfo
+import model.Events.PipelineInfo
 import monitoring.config.AppConfig
 import monitoring.modules.{HttpApi, Services}
 import monitoring.resources.AppResources

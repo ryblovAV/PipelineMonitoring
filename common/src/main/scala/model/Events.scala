@@ -1,5 +1,7 @@
 package model
 
+import java.time.Instant
+
 object Events {
 
   //pipelines
@@ -20,4 +22,6 @@ object Events {
   }
 
   final case class DataSourceEvent(pipelineId: Int, path: String, eventType: DataSourceEventType.Value)
+
+  final case class PipelineInfo(pipelineName: String, status: String)
 }

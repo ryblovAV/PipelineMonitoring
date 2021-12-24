@@ -12,6 +12,7 @@ trait Pipelines[F[_]] {
   def pipelineStart(event: PipelineStart): F[Int]
   def pipelineFinish(event: PipelineFinish): F[Int]
   def pipelineFailed(event: PipelineFailed): F[Int]
+  def getPipelineInfos: F[List[PipelineInfo]]
 }
 
 object Pipelines {
@@ -34,6 +35,10 @@ object Pipelines {
 
       override def pipelineFailed(event: PipelineFailed): F[Int] = {
         insertPipelineEvent(event.pipelineId, PipelineEventType.failed).transact(transactor)
+      }
+
+      override def getPipelineInfos: F[List[PipelineInfo]] = {
+        queryPipelineInfos.transact(transactor)
       }
     }
   }
