@@ -15,5 +15,6 @@ object Services {
 
 }
 
+// use trait instead
 sealed abstract class Services[F[_]] private(val pipelines: Pipelines[F],
                                              val dataSources: DataSources[F])

@@ -48,6 +48,7 @@ object Pipelines {
         ).transact(transactor)
       }
 
+      //this is not used
       override def startApp(sparkAppStart: SparkAppStart): F[Int] = {
         (
           for {

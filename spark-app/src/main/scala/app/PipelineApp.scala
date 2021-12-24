@@ -2,14 +2,28 @@ package app
 
 import cats.effect.{Blocker, ContextShift, IO, IOApp, Sync}
 import http.MonitoringClient
-import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
-
+import org.apache.spark.sql.{DataFrame, DataFrameReader, Dataset, SaveMode, SparkSession}
 
 trait PipelineApp extends IOApp.Simple {
 
   def sparkAppName: String
 
   def outputs: List[String]
+
+  // lets parametrize on on dataframe type
+  // not sure we need to wrap in IO, but if effect type like IO is used maybe makes sense to parmetrize on it
+  // why put read and write methods here - limits types of spark jobs to simple read/write jobs with no partitioning
+  // maybe use wrapper methods for read and write
+  // ofc extending DataFrameWriter and overloading load would be nicer, but spark uses private constructors.
+  def registeredRead[T]( f: => Dataset[T]): Dataset[T] = {
+    //send read event
+    f
+  }
+
+  def registerWrite[T]( f: Dataset[T] => Unit): Unit= {
+    //send write event
+    f
+  }
 
   def read(path: String, spark: SparkSession)(implicit contextShift: ContextShift[IO], sync: Sync[IO]): IO[DataFrame] = {
     for {
@@ -34,3 +48,4 @@ trait PipelineApp extends IOApp.Simple {
   }
 
 }
+

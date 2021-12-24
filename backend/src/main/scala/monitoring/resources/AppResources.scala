@@ -28,4 +28,7 @@ object AppResources {
       postgres <- makeDBResources(config.dbConfig)
     } yield new AppResources[F](postgres) {}
   }
+
+  //not sure AppResources is needed. Lets create resouced as needed and pass to functions that use them
+  def postgresTransactor[F[_]: ContextShift: Async](config: DBConfig): Resource[F, Transactor[F]] = ???
 }

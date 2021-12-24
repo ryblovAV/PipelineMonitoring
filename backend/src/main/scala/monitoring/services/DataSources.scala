@@ -9,7 +9,6 @@ import monitoring.domain.DataSource
 trait DataSources[F[_]] {
   def all: F[List[DataSource]]
 }
-
 object DataSources {
   def make[F[_]: BracketThrow](transactor: Transactor[F]): DataSources[F] = {
     new DataSources[F] {

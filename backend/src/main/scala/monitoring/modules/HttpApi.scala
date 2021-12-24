@@ -15,6 +15,8 @@ object HttpApi {
   }
 }
 
+// why abstract class? why sealed? Do we need this class at all ?
+// why services is class attribute, but eventTopic is  parameter? Lets use the same approach for both ( id prefere function that takes parameters)
 sealed abstract class HttpApi[F[_]: Sync: Concurrent] private(services: Services[F]) {
   private def pipelineRoutes(eventTopic: Topic[F, Option[PipelineStatusEvent]]): HttpRoutes[F] = PipelineRoutes[F](services.pipelines).routes(eventTopic)
   private val dataSourcesRoutes: HttpRoutes[F] = DataSourceRoutes[F](services.dataSources, services.pipelines).routes

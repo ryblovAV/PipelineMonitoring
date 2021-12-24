@@ -23,6 +23,9 @@ lazy val common =
       name := "Common"
     )
 
+
+//put dependencies in project.Dependencies.scala and import per project
+
 lazy val backend =
   project
     .in(file("./backend"))
@@ -41,7 +44,11 @@ lazy val backend =
         "org.tpolecat" %% "doobie-postgres" % doobieVersion,
         "org.tpolecat" %% "doobie-hikari" % doobieVersion,
 
-        "org.scalatest" %% "scalatest" % scalaTestVersion % Test
+        "com.github.pureconfig" %% "pureconfig" % "0.17.1",
+
+        "org.scalatest" %% "scalatest" % scalaTestVersion % Test,
+
+        "com.github.pureconfig" %% "pureconfig" % "0.17.1",
       )
     )
     .dependsOn(common)

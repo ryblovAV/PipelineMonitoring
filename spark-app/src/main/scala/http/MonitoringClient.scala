@@ -11,7 +11,7 @@ import org.http4s.implicits._
 
 
 object MonitoringClient  {
-
+// it would be better to send the
   import scala.concurrent.ExecutionContext.global
   implicit val cs: ContextShift[IO] = IO.contextShift(global)
   implicit val timer: Timer[IO] = IO.timer(global)
@@ -19,6 +19,7 @@ object MonitoringClient  {
   import io.circe.generic.auto._
   import org.http4s.circe.CirceEntityCodec._
 
+  // load from config, use for instance pureconfig
   val uri = uri"http://localhost:9001"
 
   def sendDataSourceRead(appName: String, path: String): IO[String] = {
@@ -27,7 +28,7 @@ object MonitoringClient  {
         client.expect[String](Method.POST(DataSourceRead(appName, path), uri / "datasources" / "add" / "input"))
       }
   }
-
+//create client once and reuse
   def sendSparkAppStart(appName: String, outputs: List[String]): IO[Int] = {
     BlazeClientBuilder[IO](ExecutionContext.global).resource
       .use { client =>
