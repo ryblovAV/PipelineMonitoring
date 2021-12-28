@@ -18,7 +18,10 @@ case class PipelineSimpleJob(pipelineJobName: String, paths: Seq[(String, String
             .flatMap(
               df =>
                 write(
-                  df.withColumn("name", lit(pipelineJobName)).write.format(dataStorageFormat).mode(SaveMode.Overwrite),
+                  df.withColumn("name", lit(pipelineJobName))
+                    .write
+                    .format(dataStorageFormat)
+                    .mode(SaveMode.Overwrite),
                   outputPath,
                   monitoringClient
                 )

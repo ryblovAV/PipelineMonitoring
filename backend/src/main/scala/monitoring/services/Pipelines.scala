@@ -61,7 +61,7 @@ object Pipelines {
                 case (p, state) =>
                   PipelineInfo(
                     p.name,
-                    s"${p.eventType}, inputs: ${p.inputs.map(_.name).distinct.sorted.mkString("; ")}, state = $state"
+                    s"inputs: ${p.inputs.map(_.name).distinct.sorted.mkString("[", "; ", "]")}, state = $state"
                   )
               }
               .sortBy(_.pipelineName)
