@@ -12,3 +12,37 @@ services:
       - "5432:5432"
     volumes:
       - "./sql:/docker-entrypoint-initdb.d"
+
+  zookeeper:
+    image: zookeeper:3.7.0
+    ports:
+      - "22181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+#  kafka:
+#    build: ./kafka_m1
+#    ports:
+#      - "127.0.0.1:9092:9092"
+#    volumes:
+#      - /var/run/docker.sock:/var/run/docker.sock
+
+  kafka:
+    image: fogsyio/kafka:2.2.0
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS:
+        "INTERNAL://kafka:9090,\
+         EXTERNAL://:9092"
+      KAFKA_ADVERTISED_LISTENERS:
+        "INTERNAL://kafka:9090,\
+         EXTERNAL://localhost:9092"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP:
+        "INTERNAL:PLAINTEXT,\
+         EXTERNAL:PLAINTEXT"
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL

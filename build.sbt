@@ -20,7 +20,10 @@ val laminextVersion      = "0.14.2"
 
 val sparkVersion = "3.2.0"
 
+val fs2KafkaVersion = "1.8.0"
+
 val sharedSettings = Seq(
+  scalafmtOnCompile := true,
   addCompilerPlugin("org.typelevel" %% "kind-projector"     % "0.13.2" cross CrossVersion.full),
   scalacOptions ++= Seq("-Ymacro-annotations", "-Xfatal-warnings", "-deprecation")
 )
@@ -57,6 +60,8 @@ lazy val backend =
         "org.tpolecat" %% "doobie-core" % doobieVersion,
         "org.tpolecat" %% "doobie-postgres" % doobieVersion,
         "org.tpolecat" %% "doobie-hikari" % doobieVersion,
+
+        "com.github.fd4s" %% "fs2-kafka" % fs2KafkaVersion,
 
         "org.scalatest" %% "scalatest" % scalaTestVersion % Test
       )
@@ -98,12 +103,17 @@ lazy val sparkApp =   project
       "org.http4s" %% "http4s-dsl" % http4sVersion,
       "org.http4s" %% "http4s-circe" % http4sVersion,
 
+      "com.github.fd4s" %% "fs2-kafka" % fs2KafkaVersion,
+
       "io.circe" %% "circe-core" % circeVersion,
       "io.circe" %% "circe-generic" % circeVersion,
       "io.circe" %% "circe-generic-extras" % circeVersion,
       "io.circe" %% "circe-optics" % circeVersion,
-      "io.circe" %% "circe-parser" % circeVersion
-    )
+      "io.circe" %% "circe-parser" % circeVersion,
+
+      "org.scalatest" %% "scalatest" % "3.2.10" % Test
+    ),
+    resolvers += "confluent" at "https://packages.confluent.io/maven/"
   )
   .settings(sharedSettings)
   .dependsOn(common)
